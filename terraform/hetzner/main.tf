@@ -45,6 +45,15 @@ variable "ignite_file" {
 }
 
 ####
+# Outputs
+##
+
+output "microshift_ip" {
+  value = hcloud_server.microshift.ipv4_address
+}
+
+
+####
 # Infrastructure config
 ##
 

@@ -1,0 +1,7 @@
+collections:
+- name: community.general
+  version: 4.8.2 
+- name: containers.podman
+  version: 1.9.3
+- name: community.kubernetes
+  version: 2.0.1 
