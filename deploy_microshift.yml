@@ -7,6 +7,7 @@
     default_hostname: true
     hcloud_token: "{{ lookup('env','HCLOUD_TOKEN') }}"
     tf_state: absent
+    microshift_version: 4.8.0-0.microshift-2022-04-20-182108
   tasks:
 
     - name: Generate butane file
