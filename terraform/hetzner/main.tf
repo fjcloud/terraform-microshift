@@ -57,7 +57,7 @@ provider "hcloud" {
   token = var.hcloud_token
 }
 
-resource "hcloud_server" "master" {
+resource "hcloud_server" "microshift" {
   name = var.hcloud_server_name
   labels = { "os" = "coreos" }
 
@@ -70,7 +70,7 @@ resource "hcloud_server" "master" {
   ssh_keys = [hcloud_ssh_key.key.id]
 
   connection {
-    host = hcloud_server.master.ipv4_address
+    host = hcloud_server.microshift.ipv4_address
     timeout = "5m"
     agent = false
     private_key = file("~/.ssh/id_rsa")
@@ -94,23 +94,6 @@ resource "hcloud_server" "master" {
       "coreos-installer install /dev/sda -i /root/microshift.ign -s stable",
       # Exit rescue mode and boot into coreos
       "reboot"
-    ]
-  }
-
-  # Configure CoreOS after installation
-  provisioner "remote-exec" {
-    connection {
-      host = hcloud_server.master.ipv4_address
-      timeout = "1m"
-      agent = false
-      private_key = file("~/.ssh/id_rsa")
-      # This user is configured in config.yaml
-      user = "core"
-    }
-
-    inline = [
-      "sudo hostnamectl set-hostname ${hcloud_server.master.name}"
-      # Add additional commands if needed
     ]
   }
 }
