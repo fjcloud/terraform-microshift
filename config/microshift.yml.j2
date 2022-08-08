@@ -1,0 +1,63 @@
+variant: fcos
+version: 1.1.0
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys:
+        - {{ ssh_pub }}
+systemd:
+  units:
+    - name: microshift.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Podman container-microshift.service
+        Documentation=man:podman-generate-systemd(1)
+        After=microshift-init.service
+        RequiresMountsFor=/run/containers/storage
+
+        [Service]
+        Environment=PODMAN_SYSTEMD_UNIT=%n
+        Restart=on-failure
+        TimeoutStopSec=70
+        ExecStartPre=setsebool -P container_manage_cgroup true
+        ExecStart=/usr/bin/podman start microshift
+        ExecStop=/usr/bin/podman stop -t 10 microshift
+        ExecStopPost=/usr/bin/podman stop -t 10 microshift
+        Type=forking
+
+        [Install]
+        WantedBy=default.target
+
+    - name: microshift-init.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Init microshift aio
+        Requires=network-online.target systemd-resolved.service
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=no
+        ExecStart=/bin/sh /etc/containers/microshift_init.sh
+        Restart=on-failure
+
+        [Install]
+        WantedBy=default.target
+storage:
+  files:
+    - path: /etc/containers/microshift_init.sh
+      contents:
+        inline: |
+          #/bin/bash
+
+          /usr/bin/podman create \
+            --name microshift -q --rm -h $(hostname -I| awk '{print $1}').nip.io --privileged \
+            -v /lib/modules:/lib/modules -v microshift-data:/var/lib \
+            -p 6443:6443 -p 8080:8080 -p 80:80 \
+            quay.io/microshift/microshift-aio
+      mode: 0744
+      user:
+        id: 0
+      group:
+        id: 0

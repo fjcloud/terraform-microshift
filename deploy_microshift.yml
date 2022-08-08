@@ -1,0 +1,42 @@
+--- 
+- hosts: localhost
+  name: Deploy Microshift on Hetzner
+  gather_facts: false
+  vars:
+    ssh_pub: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+    default_hostname: true
+    hcloud_token: "{{ lookup('env','HCLOUD_TOKEN') }}"
+    tf_state: absent
+  tasks:
+
+    - name: Generate butane file
+      template:
+        src: config/microshift.yml.j2
+        dest: config/microshift.yml
+
+    - name: Generate ignite file
+      containers.podman.podman_container:
+        image: quay.io/coreos/butane:release
+        name: butane
+        rm: true
+        interactive: true
+        detach: no
+        command:
+          - "--strict"
+          - "--raw"
+          - "/microshift.yml" 
+        volume:
+          - "{{ playbook_dir }}/config/microshift.yml:/microshift.yml:Z"
+        state: started
+      register: ignite
+      changed_when: false
+
+    - name: Manage with terraform
+      community.general.terraform:
+        project_path: "terraform/hetzner"
+        force_init: true
+        variables:
+          ssh_public_key: "{{ ssh_pub }}"
+          hcloud_token: "{{ hcloud_token }}"
+          ignite_file: "{{ ignite.stdout | b64encode }}"
+        state: "{{ tf_state }}"
