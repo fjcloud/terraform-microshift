@@ -1,0 +1,13 @@
+- name: Wait for API
+  wait_for:
+    port: 6443
+    host: "{{ tf_output.outputs.microshift_ip.value }}"
+    timeout: 600
+
+- name: Create namespace
+  kubernetes.core.k8s:
+    name: test
+    api_version: v1
+    kind: Namespace
+    kubeconfig: ../../kubeconfig
+    state: present

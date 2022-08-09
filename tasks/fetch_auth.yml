@@ -1,0 +1,32 @@
+- name: Add microshift VM to host
+  add_host:
+    name: microshift
+    ansible_host: "{{ tf_output.outputs.microshift_ip.value }}"
+    ansible_connection: ssh
+    ansible_user: core
+    ansible_ssh_private_key_file: "{{ ssh_priv }}"
+    become: true
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+  changed_when: false
+
+- name: Wait for the SSH port to come online
+  wait_for:
+    port: 22
+    host: "{{ tf_output.outputs.microshift_ip.value }}"
+    timeout: 600
+
+- name: Get Kubeconfig
+  raw: sudo cat /var/lib/containers/storage/volumes/microshift-data/_data/microshift/resources/kubeadmin/kubeconfig
+  delegate_to: microshift
+  changed_when: false
+  retries: 5
+  delay: 10
+  register: kubeconfig
+  until: kubeconfig.rc == 0
+
+- set_fact:
+    microshift_hostname: "{{ tf_output.outputs.microshift_ip.value }}.nip.io"
+
+- copy:
+    content: "{{ kubeconfig.stdout | replace('127.0.0.1', microshift_hostname) }}"
+    dest: ../kubeconfig

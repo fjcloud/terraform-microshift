@@ -12,27 +12,7 @@
     microshift_version: 4.8.0-0.microshift-2022-04-20-182108
   tasks:
 
-    - name: Generate butane file
-      template:
-        src: config/microshift.yml.j2
-        dest: config/microshift.yml
-
-    - name: Generate ignite file
-      containers.podman.podman_container:
-        image: quay.io/coreos/butane:release
-        name: butane
-        rm: true
-        interactive: true
-        detach: no
-        command:
-          - "--strict"
-          - "--raw"
-          - "/microshift.yml" 
-        volume:
-          - "{{ playbook_dir }}/config/microshift.yml:/microshift.yml:Z"
-        state: started
-      register: ignite
-      changed_when: false
+    - include_tasks: tasks/preflight.yml
 
     - name: Manage with terraform
       community.general.terraform:
@@ -45,34 +25,8 @@
         state: "{{ tf_state }}"
       register: tf_output
 
-    - name: Add microshift VM to host
-      add_host:
-        name: microshift
-        ansible_host: "{{ tf_output.outputs.microshift_ip.value }}"
-        ansible_connection: ssh
-        ansible_user: core
-        ansible_ssh_private_key_file: "{{ ssh_priv }}"
-        become: true
-        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
-      changed_when: false
-
-    - set_fact:
-        microshift_hostname: "{{ tf_output.outputs.microshift_ip.value }}.nip.io"
+    - include_tasks: tasks/fetch_auth.yml
+      when: tf_state == "present"
     
-    - name: Get Kubeconfig    
-      raw: sudo cat /var/lib/containers/storage/volumes/microshift-data/_data/microshift/resources/kubeadmin/kubeconfig
-      delegate_to: microshift
-      register: kubeconfig
-      changed_when: false
-
-    - copy: 
-        content: "{{ kubeconfig.stdout | replace('127.0.0.1', microshift_hostname) }}" 
-        dest: kubeconfig
-
-    - name: Create namespace
-      kubernetes.core.k8s:
-        name: test
-        api_version: v1
-        kind: Namespace
-        state: present
-        kubeconfig: kubeconfig
+    - include_tasks: tasks/day2.yml
+      when: tf_state == "present"

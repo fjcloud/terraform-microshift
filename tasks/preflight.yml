@@ -1,0 +1,21 @@
+- name: Generate butane file
+  template:
+    src: config/microshift.yml.j2
+    dest: config/microshift.yml
+
+- name: Generate ignite file
+  containers.podman.podman_container:
+    image: quay.io/coreos/butane:release
+    name: butane
+    rm: true
+    interactive: true
+    detach: no
+    command:
+      - "--strict"
+      - "--raw"
+      - "/microshift.yml"
+    volume:
+      - "{{ playbook_dir }}/config/microshift.yml:/microshift.yml:Z"
+    state: started
+  register: ignite
+  changed_when: false
