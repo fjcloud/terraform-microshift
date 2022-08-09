@@ -19,7 +19,7 @@
   raw: sudo cat /var/lib/containers/storage/volumes/microshift-data/_data/microshift/resources/kubeadmin/kubeconfig
   delegate_to: microshift
   changed_when: false
-  retries: 5
+  retries: 10
   delay: 10
   register: kubeconfig
   until: kubeconfig.rc == 0
