@@ -20,6 +20,11 @@ variable "ssh_public_key" {
   type = string
 }
 
+variable "ssh_private_key_path" {
+  description = "Local path to your private key"
+  type = string
+}
+
 variable "hcloud_server_type" {
   description = "vServer type name, lookup via `hcloud server-type list`"
   type = string
@@ -82,7 +87,7 @@ resource "hcloud_server" "microshift" {
     host = hcloud_server.microshift.ipv4_address
     timeout = "5m"
     agent = false
-    private_key = file("~/.ssh/id_rsa")
+    private_key = file(var.ssh_private_key_path)
     # Root is the available user in rescue mode
     user = "root"
   }
