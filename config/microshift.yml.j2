@@ -52,7 +52,7 @@ storage:
           #/bin/bash
 
           /usr/bin/podman create \
-            --name microshift -q --rm -h $(hostname -I| awk '{print $1}').nip.io --privileged \
+            --name microshift -q --rm -h $(curl http://169.254.169.254/hetzner/v1/metadata/public-ipv4).nip.io --privileged \
             -v /lib/modules:/lib/modules -v microshift-data:/var/lib \
             -p 6443:6443 -p 8080:8080 -p 80:80 -p 443:443 \
             quay.io/microshift/microshift-aio:{{ microshift_version }}
