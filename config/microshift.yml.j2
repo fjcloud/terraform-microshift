@@ -54,7 +54,7 @@ storage:
           /usr/bin/podman create \
             --name microshift -q --rm -h $(hostname -I| awk '{print $1}').nip.io --privileged \
             -v /lib/modules:/lib/modules -v microshift-data:/var/lib \
-            -p 6443:6443 -p 8080:8080 -p 80:80 \
+            -p 6443:6443 -p 8080:8080 -p 80:80 -p 443:443 \
             quay.io/microshift/microshift-aio:{{ microshift_version }}
       mode: 0744
       user:

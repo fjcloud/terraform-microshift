@@ -6,8 +6,7 @@
 
 - name: Create namespace
   kubernetes.core.k8s:
-    name: test
+    name: openshift-acme
     api_version: v1
     kind: Namespace
-    kubeconfig: ../../kubeconfig
     state: present

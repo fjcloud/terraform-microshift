@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: console-deployment
-  namespace: kube-system
+  namespace: okd-console
   labels:
     app: console
 spec:
@@ -32,14 +32,14 @@ spec:
         - name: BRIDGE_K8S_AUTH_BEARER_TOKEN
           valueFrom:
             secretKeyRef:
-              name: console-token-cj8mx
+              name: console-token-6bpft
               key: token
 ---
 kind: Service
 apiVersion: v1
 metadata:
   name: console-np-service
-  namespace: kube-system
+  namespace: okd-console
 spec:
   selector:
     app: console

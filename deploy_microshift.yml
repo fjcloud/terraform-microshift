@@ -10,6 +10,9 @@
     hcloud_token: "{{ lookup('env','HCLOUD_TOKEN') }}"
     tf_state: present
     microshift_version: 4.8.0-0.microshift-2022-04-20-182108
+  module_defaults:
+    kubernetes.core.k8s:
+      kubeconfig: /root/kubeconfig
   tasks:
 
     - include_tasks: tasks/preflight.yml
