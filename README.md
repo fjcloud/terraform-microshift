@@ -7,6 +7,7 @@ This collections of playbooks/HCL files will permits you to deploy easily micros
 - Ansible >= 2.10
 - Terraform >= 1.2.6
 - oc >= 4.8
+- podman >= 4.1.1
 
 ```shell
 $ ansible-galaxy install -r requirements.yml
