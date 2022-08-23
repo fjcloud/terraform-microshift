@@ -4,9 +4,9 @@ This collections of playbooks/HCL files will permits you to deploy easily micros
 
 ## Requirements
 
-- Ansible =< 2.10
-- Terraform =< 1.2.6
-- oc =< 4.8
+- Ansible <= 2.10
+- Terraform <= 1.2.6
+- oc <= 4.8
 
 ```shell
 $ ansible-galaxy install -r requirements.yml
@@ -32,7 +32,7 @@ Validate deployment
 $ oc get po -A
 ```
 
->>Pods should all be in `Running` state
+>Pods should all be in `Running` state
 
 ## Delete Microshift instance
 
