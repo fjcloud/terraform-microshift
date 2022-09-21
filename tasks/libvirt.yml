@@ -1,0 +1,8 @@
+- name: Deploy with Libvirt
+  community.general.terraform:
+    project_path: "terraform/{{ provider }}"
+    force_init: true
+    variables:
+      ignite_file: "{{ ignite.stdout | default([]) | b64encode }}"
+    state: "{{ tf_state }}"
+  register: tf_output

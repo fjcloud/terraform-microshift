@@ -7,18 +7,41 @@ passwd:
         - {{ ssh_pub }}
 systemd:
   units:
+{% if provider == 'libvirt' %}
+    - name: qemu_guest.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=QEMU Guest Agent
+        After=docker.service
+        StartLimitInterval=0
+        Requires=network-online.target systemd-resolved.service
+
+        [Service]
+        TimeoutStartSec=0
+        Restart=always
+        RestartSec=5
+        ExecStartPre=-/usr/bin/podman stop guest_agent
+        ExecStartPre=-/usr/bin/podman rm guest_agent
+        ExecStartPre=/usr/bin/podman pull docker.io/linuxkit/qemu-ga:54d61acba52ea7acf07f6452504e707e35136d40
+        ExecStart=/usr/bin/podman run --rm --name guest_agent --device=/dev/virtio-ports/org.qemu.guest_agent.0 --net host docker.io/linuxkit/qemu-ga:54d61acba52ea7acf07f6452504e707e35136d40 /usr/bin/qemu-ga -p /dev/vport1p1
+        [Install]
+        WantedBy=multi-user.target
+{% endif %}
     - name: microshift.service
       enabled: true
       contents: |
         [Unit]
         Description=Podman container-microshift.service
-        Documentation=man:podman-generate-systemd(1)
         After=microshift-init.service
         RequiresMountsFor=/run/containers/storage
+        StartLimitInterval=0
 
         [Service]
         Environment=PODMAN_SYSTEMD_UNIT=%n
         Restart=on-failure
+        TimeoutStartSec=0
+        RestartSec=3
         TimeoutStopSec=70
         ExecStartPre=setsebool -P container_manage_cgroup true
         ExecStart=/usr/bin/podman start microshift
@@ -35,24 +58,28 @@ systemd:
         [Unit]
         Description=Init microshift aio
         Requires=network-online.target systemd-resolved.service
+        StartLimitInterval=0
 
         [Service]
+        TimeoutStartSec=0
+        RestartSec=3
         Type=oneshot
         RemainAfterExit=no
-        ExecStart=/bin/sh /etc/containers/microshift_init.sh
+        ExecStartPre=-/usr/bin/podman rm microshift
+        ExecStart=/bin/sh /root/microshift_init.sh
         Restart=on-failure
 
         [Install]
         WantedBy=default.target
 storage:
   files:
-    - path: /etc/containers/microshift_init.sh
+    - path: /root/microshift_init.sh
       contents:
         inline: |
           #/bin/bash
 
           /usr/bin/podman create \
-            --name microshift -q --rm -h $(curl http://169.254.169.254/hetzner/v1/metadata/public-ipv4).nip.io --privileged \
+            --name microshift -q --rm -h $(curl -s -m 5 http://169.254.169.254/hetzner/v1/metadata/public-ipv4 || hostname -I | awk '{print $1}').nip.io --privileged \
             -v /lib/modules:/lib/modules -v microshift-data:/var/lib \
             -p 6443:6443 -p 8080:8080 -p 80:80 -p 443:443 \
             quay.io/microshift/microshift-aio:{{ microshift_version }}

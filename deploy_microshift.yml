@@ -3,7 +3,7 @@
   name: Deploy Microshift on "{{ provider }}"
   gather_facts: false
   vars:
-    provider: hetzner
+    provider: libvirt
     ssh_pub: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
     ssh_priv_path: "~/.ssh/id_rsa"
     default_hostname: true
@@ -15,22 +15,13 @@
       kubeconfig: ../kubeconfig
   tasks:
 
-    - include_tasks: tasks/preflight.yml
-
-    - name: Manage with terraform
-      community.general.terraform:
-        project_path: "terraform/hetzner"
-        force_init: true
-        variables:
-          ssh_private_key_path: "{{ ssh_priv_path }}"
-          ssh_public_key: "{{ ssh_pub }}"
-          hcloud_token: "{{ hcloud_token }}"
-          ignite_file: "{{ ignite.stdout | b64encode }}"
-        state: "{{ tf_state }}"
-      register: tf_output
-
-    - include_tasks: tasks/fetch_auth.yml
+    - include_tasks: "tasks/preflight.yml"
       when: tf_state == "present"
     
-    - include_tasks: tasks/day2.yml
+    - include_tasks: "tasks/{{ provider }}.yml"
+
+    - include_tasks: "tasks/fetch_auth.yml"
+      when: tf_state == "present"
+    
+    - include_tasks: "tasks/day2.yml"
       when: tf_state == "present"

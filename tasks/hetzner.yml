@@ -1,0 +1,11 @@
+- name: Deploy on Hetzner
+  community.general.terraform:
+    project_path: "terraform/hetzner"
+    force_init: true
+    variables:
+      ssh_private_key_path: "{{ ssh_priv_path }}"
+      ssh_public_key: "{{ ssh_pub }}"
+      hcloud_token: "{{ hcloud_token }}"
+      ignite_file: "{{ ignite.stdout | default([]) | b64encode }}"
+    state: "{{ tf_state }}"
+  register: tf_output
