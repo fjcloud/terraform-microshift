@@ -8,6 +8,8 @@ This collections of playbooks/HCL files will permits you to deploy easily micros
 - Terraform >= 1.2.6
 - oc >= 4.8
 - podman >= 4.1.1
+- libvirt >= 8.0.0
+- jq
 
 ```shell
 $ ansible-galaxy install -r requirements.yml
@@ -61,5 +63,5 @@ $ oc get po -A
 ## Delete Microshift instance
 
 ```shell
-$ ansible-playbook deploy_microshift.yml -e tf_state=absent
+$ ansible-playbook deploy_microshift.yml -e tf_state=absent -e provider=<provider>
 ```
