@@ -11,7 +11,7 @@ variable "ignite_file" {
 # -[Resources]-------------------------------------------------------------
 resource "libvirt_volume" "coreos-disk" {
   name   = "microshift"
-  source = "/tmp/fedora-coreos-36.20220820.3.0-qemu.x86_64.qcow2"
+  source = "../../fcos-latest.qcow2"
 }
 
 resource "libvirt_ignition" "ignition" {
