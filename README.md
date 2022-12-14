@@ -24,8 +24,25 @@ $ export HCLOUD_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxx
 Deploy microshift
 
 ```shell
-$ ansible-playbook deploy_microshift.yml
+$ ansible-playbook deploy_microshift.yml -e provider=hetzner
 ```
+
+## Deployment on libvirt
+
+Download Fedora CoreOS
+
+```shell
+$ FCOS_URL=$(curl -s https://builds.coreos.fedoraproject.org/streams/stable.json | jq -r '.architectures.x86_64.artifacts.qemu.formats."qcow2.xz"'.disk.location)
+$ curl -s ${FCOS_URL} | xzcat > fcos-latest.qcow2
+```
+
+Deploy microshift
+
+```shell
+$ ansible-playbook deploy_microshift.yml -e provider=libvirt
+```
+
+## General Config
 
 Export KUBECONFIG
 
